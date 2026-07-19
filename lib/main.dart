@@ -12,6 +12,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    Color surfaceColor = Color(0x0dffffff); // 5% opacity white
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
@@ -34,6 +35,7 @@ class MyApp extends StatelessWidget {
           seedColor: Colors.blue,
           brightness: Brightness.dark,
         ),
+        dividerColor: surfaceColor,
         scaffoldBackgroundColor: const Color.fromARGB(255, 30, 30, 30),
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.black,
@@ -52,9 +54,32 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
 
   const MyHomePage({super.key});
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+enum _SkillType {
+  python,
+  pytorch,
+  dart,
+  opencv,
+  flutter,
+  firebase,
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+
+  _SkillType _selectedSkill = _SkillType.python;
+
+  void updateSelectedSkill(_SkillType type) {
+    setState(() {
+      this._selectedSkill = type;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,6 +103,7 @@ class MyHomePage extends StatelessWidget {
       ),
       body: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
               padding: const EdgeInsets.all(32.0),
@@ -144,7 +170,92 @@ class MyHomePage extends StatelessWidget {
                 ],
               ),
             ),
-            Divider(),
+            Divider(color: Theme.of(context).dividerColor),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(32, 16, 32, 0),
+              child: Row(
+                children: [
+                  Text(
+                    'Skills',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  SizedBox(width: 2),
+                  Icon(CupertinoIcons.chevron_down, size:12),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Center(
+                  child: Wrap(
+                    direction: Axis.horizontal,
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      Skill(
+                        type: _SkillType.python,
+                        skillName: 'Python',
+                        skillIconPath: 'assets/images/skill_icon_01.png',
+                        shadowColor: Colors.green,
+                        isActive: _selectedSkill == _SkillType.python,
+                        onTap: () {
+                          updateSelectedSkill(_SkillType.python);
+                        },
+                      ),
+                      Skill(
+                        type: _SkillType.pytorch,
+                        skillName: 'Pytorch',
+                        skillIconPath: 'assets/images/skill_icon_02.png',
+                        shadowColor: Colors.deepOrange,
+                        isActive: _selectedSkill == _SkillType.pytorch,
+                        onTap: () {
+                          updateSelectedSkill(_SkillType.pytorch);
+                        },
+                      ),
+                      Skill(
+                        type: _SkillType.dart,
+                        skillName: 'Dart',
+                        skillIconPath: 'assets/images/skill_icon_03.png',
+                        shadowColor: Colors.blue,
+                        isActive: _selectedSkill == _SkillType.dart,
+                        onTap: () {
+                          updateSelectedSkill(_SkillType.dart);
+                        },
+                      ),
+                      Skill(
+                        type: _SkillType.opencv,
+                        skillName: 'OpenCV',
+                        skillIconPath: 'assets/images/skill_icon_04.png',
+                        shadowColor: Colors.white,
+                        isActive: _selectedSkill == _SkillType.opencv,
+                        onTap: () {
+                          updateSelectedSkill(_SkillType.opencv);
+                        },
+                      ),
+                      Skill(
+                        type: _SkillType.flutter,
+                        skillName: 'Flutter',
+                        skillIconPath: 'assets/images/skill_icon_05.png',
+                        shadowColor: Colors.blue,
+                        isActive: _selectedSkill == _SkillType.flutter,
+                        onTap: () {
+                          updateSelectedSkill(_SkillType.flutter);
+                        },
+                      ),
+                      Skill(
+                        type: _SkillType.firebase,
+                        skillName: 'Firebase',
+                        skillIconPath: 'assets/images/skill_icon_06.png',
+                        shadowColor: Colors.orange,
+                        isActive: _selectedSkill == _SkillType.firebase,
+                        onTap: () {
+                          updateSelectedSkill(_SkillType.firebase);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+            ),
           ],
         ),
       ),
@@ -164,6 +275,66 @@ class MyHomePage extends StatelessWidget {
           ),
         ],
         selectedItemColor: Theme.of(context).colorScheme.primary,
+      ),
+    );
+  }
+}
+
+class Skill extends StatelessWidget {
+  final _SkillType type;
+  final String skillName;
+  final String skillIconPath;
+  final Color shadowColor;
+  final bool isActive;
+  final Function()? onTap;
+  
+  const Skill({
+    super.key, 
+    required this.type,
+    required this.skillName, 
+    required this.skillIconPath, 
+    required this.shadowColor,
+    this.isActive = false,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final BorderRadius borderRadius = BorderRadius.circular(12);
+    return InkWell(
+      borderRadius: borderRadius,
+      onTap: onTap,
+      child: Container(
+        width: 110,
+        height: 110,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: isActive?BoxDecoration(
+          color: Theme.of(context).dividerColor,
+          borderRadius: borderRadius,
+        ):null,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: isActive?[
+                  BoxShadow(
+                    color: shadowColor.withValues(alpha: 0.6),
+                    spreadRadius: 2,
+                    blurRadius: 20,
+                  ),
+                ]:null,
+              ),
+              child: Image.asset(skillIconPath, width: 40, height: 40)),
+            const SizedBox(height: 8),
+            Text(
+              skillName,
+              style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
       ),
     );
   }
