@@ -1,45 +1,61 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/cupertino.dart'; //Apple/iOS-style widgets and icons.
+import 'package:flutter/material.dart'; //Google's Material Design widgets.
+import 'package:google_fonts/google_fonts.dart'; //A third-party/pub.dev package for fonts.
+
+/*
+'runApp()' is a Flutter function
+that takes a widget and makes it the root of your entire app.
+it tells Flutter "draw this widget (and everything inside it) to the screen."
+*/
 
 void main() {
   runApp(const MyApp());
 }
 
+// This widget is the root of your application.
+// In one sentence: 'MyApp' is a config widget
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
+  //Every widget must implement build()
   @override
   Widget build(BuildContext context) {
-    Color surfaceColor = Color(0x0dffffff); // 5% opacity white
+    const Color seedColor = Colors.blue;
+    const Color surfaceColor = Color(0x0dffffff); // 5% opacity white
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Flutter Demo', //Used by the OS (e.g., shown in the task switcher on Android)
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
+          seedColor: seedColor,
           brightness: Brightness.dark,
         ),
         dividerColor: surfaceColor,
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: seedColor,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
         scaffoldBackgroundColor: const Color.fromARGB(255, 30, 30, 30),
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.black,
           // foregroundColor: Colors.white,
+        ),
+        inputDecorationTheme: const InputDecorationTheme(
+          filled: true,
+          fillColor: surfaceColor,
+          labelStyle: TextStyle(color: Colors.white),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.white24),
+            borderRadius: BorderRadius.all(Radius.circular(8)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: seedColor),
+            borderRadius: BorderRadius.all(Radius.circular(8)),
+          ),
         ),
         textTheme: GoogleFonts.latoTextTheme(
           TextTheme(
@@ -74,6 +90,7 @@ enum _SkillType {
 class _MyHomePageState extends State<MyHomePage> {
 
   _SkillType _selectedSkill = _SkillType.python;
+  bool _obscurePassword = true;
 
   void updateSelectedSkill(_SkillType type) {
     setState(() {
@@ -102,6 +119,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -255,6 +273,53 @@ class _MyHomePageState extends State<MyHomePage> {
                     ],
                   ),
                 ),
+            ),
+            Divider(color: Theme.of(context).dividerColor),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(32, 12, 32, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                        'Personal Information',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(Icons.email),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    obscureText: _obscurePassword,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      prefixIcon: const Icon(Icons.lock),
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Handle save button press
+                      },
+                      child: Text('Save'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
