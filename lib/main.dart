@@ -14,65 +14,129 @@ void main() {
 
 // This widget is the root of your application.
 // In one sentence: 'MyApp' is a config widget
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   //Every widget must implement build()
+  ThemeMode _themeMode = ThemeMode.light;
+
   @override
   Widget build(BuildContext context) {
-    const Color seedColor = Colors.blue;
-    const Color surfaceColor = Color(0x0dffffff); // 5% opacity white
     return MaterialApp(
       title: 'Flutter Demo', //Used by the OS (e.g., shown in the task switcher on Android)
-      theme: ThemeData(
+      theme: _themeMode == ThemeMode.light ? MyAppThemeConfig.light().getTheme() : MyAppThemeConfig.dark().getTheme(),
+      home: MyHomePage(
+        themeMode: _themeMode,
+        toggleThemeMode: () {
+          setState(() {
+            _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+          });
+      },),
+    );
+  }
+}
+
+class MyAppThemeConfig {
+  final Color primaryColor = Colors.blue;
+  final Color primaryTextColor;
+  final Color secondaryTextColor;
+  final Color surfaceColor;
+  final Color backgroundColor;
+  final Color appBarColor;
+  final Brightness brightness;
+
+  MyAppThemeConfig.light():
+    primaryTextColor = Colors.black,
+    secondaryTextColor = Colors.black54,
+    surfaceColor = Colors.black12,
+    backgroundColor = Colors.grey[100]!,
+    appBarColor = Colors.grey[200]!,
+    brightness = Brightness.light;
+  
+  MyAppThemeConfig.dark():
+    primaryTextColor = Colors.white,
+    secondaryTextColor = Colors.white70,
+    surfaceColor = Colors.grey[850]!,
+    backgroundColor = Colors.grey[900]!,
+    appBarColor = Colors.black87,
+    brightness = Brightness.dark;
+  
+  ThemeData getTheme() {
+    return ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: seedColor,
-          brightness: Brightness.dark,
+          seedColor: primaryColor,
+          brightness: brightness,
         ),
         dividerColor: surfaceColor,
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: seedColor,
+            backgroundColor: primaryColor,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
           ),
         ),
-        scaffoldBackgroundColor: const Color.fromARGB(255, 30, 30, 30),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.black,
-          // foregroundColor: Colors.white,
+        scaffoldBackgroundColor: backgroundColor,
+        appBarTheme: AppBarTheme(
+          backgroundColor: appBarColor,
+          foregroundColor: secondaryTextColor,
         ),
-        inputDecorationTheme: const InputDecorationTheme(
+        inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: surfaceColor,
-          labelStyle: TextStyle(color: Colors.white),
+          labelStyle: TextStyle(color: secondaryTextColor),
           enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.white24),
+            borderSide: BorderSide(color: surfaceColor),
             borderRadius: BorderRadius.all(Radius.circular(8)),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: seedColor),
+            borderSide: BorderSide(color: primaryColor),
             borderRadius: BorderRadius.all(Radius.circular(8)),
           ),
         ),
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+          backgroundColor: surfaceColor,
+          selectedItemColor: primaryColor,
+          unselectedItemColor: secondaryTextColor,
+          // selectedIconTheme: IconThemeData(
+          //   color: primaryColor,
+          //   shadows: [
+          //     Shadow(
+          //       color: Colors.blue, // lite shadow
+          //       blurRadius: 4,
+          //       offset: Offset(0, 2),
+          //     ),
+          //   ],
+          // ),
+        ),
         textTheme: GoogleFonts.latoTextTheme(
           TextTheme(
-            bodyMedium: const TextStyle(color: Colors.blueGrey, fontSize: 16),
-            bodySmall: const TextStyle(color: Colors.green, fontSize: 14),
-            headlineSmall: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+            bodyMedium: TextStyle(color: secondaryTextColor, fontSize: 16),
+            bodySmall: TextStyle(color: Colors.green, fontSize: 14),
+            headlineSmall: TextStyle(color: secondaryTextColor, fontSize: 20, fontWeight: FontWeight.bold),
           ),
         ),
-      ),
-      home: MyHomePage(),
-    );
+      );
   }
 }
 
 class MyHomePage extends StatefulWidget {
 
-  const MyHomePage({super.key});
+  final Function()? toggleThemeMode;
+  final ThemeMode themeMode;
+
+  const MyHomePage({
+    super.key,
+    required this.toggleThemeMode,
+    required this.themeMode,
+  });
+
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -91,6 +155,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   _SkillType _selectedSkill = _SkillType.python;
   bool _obscurePassword = true;
+  int _selectedNavIndex = 0;
 
   void updateSelectedSkill(_SkillType type) {
     setState(() {
@@ -111,9 +176,9 @@ class _MyHomePageState extends State<MyHomePage> {
             },
           ),
           IconButton(
-            icon: const Icon(CupertinoIcons.ellipsis_vertical),
+            icon: Icon(widget.themeMode == ThemeMode.light ? CupertinoIcons.moon_fill : CupertinoIcons.sun_max),
             onPressed: () {
-              // Handle settings button press
+              widget.toggleThemeMode?.call();
             },
           ),
         ],
@@ -324,22 +389,17 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.chat_bubble),
-            label: 'Chat',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.person),
-            label: 'Profile',
-          ),
-        ],
-        selectedItemColor: Theme.of(context).colorScheme.primary,
+      bottomNavigationBar: Container(
+        color: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _NavItem(icon: CupertinoIcons.home, index: 0, selectedIndex: _selectedNavIndex, onTap: () => setState(() => _selectedNavIndex = 0)),
+            _NavItem(icon: CupertinoIcons.chat_bubble, index: 1, selectedIndex: _selectedNavIndex, onTap: () => setState(() => _selectedNavIndex = 1)),
+            _NavItem(icon: CupertinoIcons.person, index: 2, selectedIndex: _selectedNavIndex, onTap: () => setState(() => _selectedNavIndex = 2)),
+          ],
+        ),
       ),
     );
   }
@@ -374,6 +434,7 @@ class Skill extends StatelessWidget {
         height: 110,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: isActive?BoxDecoration(
+          // color: Colors.red,
           color: Theme.of(context).dividerColor,
           borderRadius: borderRadius,
         ):null,
@@ -396,10 +457,53 @@ class Skill extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               skillName,
-              style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final int index;
+  final int selectedIndex;
+  final VoidCallback onTap;
+
+  const _NavItem({
+    required this.icon,
+    required this.index,
+    required this.selectedIndex,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isSelected = index == selectedIndex;
+    final Color color = isSelected
+        ? Theme.of(context).bottomNavigationBarTheme.selectedItemColor!
+        : Theme.of(context).bottomNavigationBarTheme.unselectedItemColor!;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(30),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.4),
+                    blurRadius: 12,
+                    spreadRadius: 1,
+                  ),
+                ]
+              : null,
+        ),
+        child: Icon(icon, color: color),
       ),
     );
   }
