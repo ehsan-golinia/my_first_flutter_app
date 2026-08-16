@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart'; //Apple/iOS-style widgets and icons.
 import 'package:flutter/material.dart'; //Google's Material Design widgets.
 import 'package:google_fonts/google_fonts.dart'; //A third-party/pub.dev package for fonts.
+import 'l10n/app_localizations.dart';
 
 /*
 'runApp()' is a Flutter function
@@ -24,24 +25,39 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   //Every widget must implement build()
   ThemeMode _themeMode = ThemeMode.light;
+  Locale _currentLocale = Locale('en'); // Set the default locale to English
+
+  void _toggleThemeMode() {
+    setState(() {
+      _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    });
+  }
+
+  void _toggleLocale() {
+    setState(() {
+      _currentLocale = _currentLocale.languageCode == 'en' ? Locale('tr') : Locale('en');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo', //Used by the OS (e.g., shown in the task switcher on Android)
-      theme: _themeMode == ThemeMode.light ? MyAppThemeConfig.light().getTheme() : MyAppThemeConfig.dark().getTheme(),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: _currentLocale,
+      theme: _themeMode == ThemeMode.light ? MyAppThemeConfig.light().getTheme(_currentLocale) : MyAppThemeConfig.dark().getTheme(_currentLocale),
       home: MyHomePage(
         themeMode: _themeMode,
-        toggleThemeMode: () {
-          setState(() {
-            _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
-          });
-      },),
+        toggleThemeMode: _toggleThemeMode,
+        toggleLocale: _toggleLocale,
+      ),
     );
   }
 }
 
 class MyAppThemeConfig {
+  static const String trPrimaryFontFamily = 'Inter';
   final Color primaryColor = Colors.blue;
   final Color primaryTextColor;
   final Color secondaryTextColor;
@@ -66,7 +82,7 @@ class MyAppThemeConfig {
     appBarColor = Colors.black87,
     brightness = Brightness.dark;
   
-  ThemeData getTheme() {
+  ThemeData getTheme(Locale? locale) {
     return ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: primaryColor,
@@ -115,25 +131,35 @@ class MyAppThemeConfig {
           //   ],
           // ),
         ),
-        textTheme: GoogleFonts.latoTextTheme(
-          TextTheme(
-            bodyMedium: TextStyle(color: secondaryTextColor, fontSize: 16),
-            bodySmall: TextStyle(color: Colors.green, fontSize: 14),
-            headlineSmall: TextStyle(color: secondaryTextColor, fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-        ),
-      );
+        textTheme: locale!.languageCode == 'tr' ? trPrimaryTextTheme : enPrimaryTextTheme,
+    );
   }
+
+  TextTheme get enPrimaryTextTheme => GoogleFonts.latoTextTheme(
+    TextTheme(
+      bodyMedium: TextStyle(color: secondaryTextColor, fontSize: 16),
+      bodySmall: TextStyle(color: Colors.green, fontSize: 14),
+      headlineSmall: TextStyle(color: secondaryTextColor, fontSize: 20, fontWeight: FontWeight.bold),
+    ),
+  );
+
+  TextTheme get trPrimaryTextTheme => TextTheme(
+      bodyMedium: TextStyle(color: secondaryTextColor, fontSize: 16, fontFamily: trPrimaryFontFamily),
+      bodySmall: TextStyle(color: Colors.green, fontSize: 14, fontFamily: trPrimaryFontFamily),
+      headlineSmall: TextStyle(color: secondaryTextColor, fontSize: 20, fontWeight: FontWeight.bold, fontFamily: trPrimaryFontFamily),
+    );
 }
 
 class MyHomePage extends StatefulWidget {
 
   final Function()? toggleThemeMode;
+  final Function()? toggleLocale;
   final ThemeMode themeMode;
 
   const MyHomePage({
     super.key,
     required this.toggleThemeMode,
+    required this.toggleLocale,
     required this.themeMode,
   });
 
@@ -151,13 +177,15 @@ enum _SkillType {
   firebase,
 }
 
+
 class _MyHomePageState extends State<MyHomePage> {
 
   _SkillType _selectedSkill = _SkillType.python;
   bool _obscurePassword = true;
   int _selectedNavIndex = 0;
+  bool _isFavorited = false;
 
-  void updateSelectedSkill(_SkillType type) {
+  void _updateSelectedSkill(_SkillType type) {
     setState(() {
       this._selectedSkill = type;
     });
@@ -165,14 +193,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final localization = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text('My CV', style: Theme.of(context).textTheme.headlineSmall),
+        title: Text(localization.profileTitle, style: Theme.of(context).textTheme.headlineSmall),
         actions: [
           IconButton(
-            icon: const Icon(CupertinoIcons.chat_bubble),
+            icon: Icon(CupertinoIcons.text_bubble),
             onPressed: () {
-              // Handle chat button press
+              widget.toggleLocale?.call();
             },
           ),
           IconButton(
@@ -211,7 +240,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Flutter Developer',
+                        localization.jobTitle,
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 8),
@@ -220,7 +249,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           const Icon(Icons.location_on_outlined, size: 18, color: Colors.green),
                           const SizedBox(width: 4),
                           Text(
-                            'Istanbul, Türkiye',
+                            localization.location,
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -229,9 +258,14 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   const SizedBox(width: 16),
                   IconButton(
-                    icon: Icon(CupertinoIcons.heart, color: Theme.of(context).colorScheme.primary),
+                    icon: Icon(
+                      _isFavorited ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     onPressed: () {
-                      // Handle heart button press
+                      setState(() {
+                        _isFavorited = !_isFavorited;
+                      });
                     },
                   ),
                 ],
@@ -243,11 +277,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'About Me',
+                    AppLocalizations.of(context)!.summaryTitle,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   Text(
-                    'I am a passionate Flutter developer with experience in building beautiful and functional mobile applications. I enjoy learning new technologies and improving my skills.',
+                    AppLocalizations.of(context)!.summary,
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ],
@@ -259,7 +293,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Row(
                 children: [
                   Text(
-                    'Skills',
+                    AppLocalizations.of(context)!.skillsTitle,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   SizedBox(width: 2),
@@ -282,7 +316,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         shadowColor: Colors.green,
                         isActive: _selectedSkill == _SkillType.python,
                         onTap: () {
-                          updateSelectedSkill(_SkillType.python);
+                          _updateSelectedSkill(_SkillType.python);
                         },
                       ),
                       Skill(
@@ -292,7 +326,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         shadowColor: Colors.deepOrange,
                         isActive: _selectedSkill == _SkillType.pytorch,
                         onTap: () {
-                          updateSelectedSkill(_SkillType.pytorch);
+                          _updateSelectedSkill(_SkillType.pytorch);
                         },
                       ),
                       Skill(
@@ -302,7 +336,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         shadowColor: Colors.blue,
                         isActive: _selectedSkill == _SkillType.dart,
                         onTap: () {
-                          updateSelectedSkill(_SkillType.dart);
+                          _updateSelectedSkill(_SkillType.dart);
                         },
                       ),
                       Skill(
@@ -312,7 +346,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         shadowColor: Colors.white,
                         isActive: _selectedSkill == _SkillType.opencv,
                         onTap: () {
-                          updateSelectedSkill(_SkillType.opencv);
+                          _updateSelectedSkill(_SkillType.opencv);
                         },
                       ),
                       Skill(
@@ -322,7 +356,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         shadowColor: Colors.blue,
                         isActive: _selectedSkill == _SkillType.flutter,
                         onTap: () {
-                          updateSelectedSkill(_SkillType.flutter);
+                          _updateSelectedSkill(_SkillType.flutter);
                         },
                       ),
                       Skill(
@@ -332,7 +366,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         shadowColor: Colors.orange,
                         isActive: _selectedSkill == _SkillType.firebase,
                         onTap: () {
-                          updateSelectedSkill(_SkillType.firebase);
+                          _updateSelectedSkill(_SkillType.firebase);
                         },
                       ),
                     ],
@@ -346,13 +380,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                        'Personal Information',
+                        localization.infoTitle,
                         style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 20),
                   TextField(
                     decoration: InputDecoration(
-                      labelText: 'Email',
+                      labelText: localization.email,
                       prefixIcon: Icon(Icons.email),
                     ),
                   ),
@@ -360,7 +394,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   TextField(
                     obscureText: _obscurePassword,
                     decoration: InputDecoration(
-                      labelText: 'Password',
+                      labelText: localization.password,
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
                         icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
@@ -380,7 +414,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       onPressed: () {
                         // Handle save button press
                       },
-                      child: Text('Save'),
+                      child: Text(localization.saveButton),
                     ),
                   ),
                 ],

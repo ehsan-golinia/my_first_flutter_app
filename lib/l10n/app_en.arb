@@ -1,0 +1,12 @@
+{
+  "profileTitle": "My CV",
+    "jobTitle": "Flutter Developer",
+    "location": "Istanbul, Türkiye",
+    "summaryTitle": "About Me",
+    "summary": "I am a passionate Flutter developer with experience in building beautiful and functional mobile applications. I enjoy learning new technologies and improving my skills.",
+    "skillsTitle": "Skills",
+    "infoTitle": "Personal Information",
+    "email": "Email",
+    "password": "Password",
+    "saveButton": "Save"
+}
