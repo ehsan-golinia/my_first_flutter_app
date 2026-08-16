@@ -42,7 +42,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo', //Used by the OS (e.g., shown in the task switcher on Android)
+      title: 'My First Flutter App', //Used by the OS (e.g., shown in the task switcher on Android)
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: _currentLocale,
